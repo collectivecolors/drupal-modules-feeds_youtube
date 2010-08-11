@@ -1,0 +1,74 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Adds a YouTube feed processor to the Feeds module.
+ */
+
+/**
+ * Implementation of hook_feeds_plugins().
+ */
+function feeds_youtube_feeds_plugins() {
+  
+  $plugin_dir = drupal_get_path('module', 'feeds_youtube') . '/plugins';
+  
+  // Fetchers
+  
+  $info['FeedsYouTubeVideoSearchFetcher'] = array(
+    'name' => 'YouTube video search',
+    'description' => 'Download public videos from YouTube based on search criteria.',
+    'handler' => array(
+      'parent' => 'FeedsHTTPFetcher', // This is the key name, not the class name.
+      'class' => 'FeedsYouTubeVideoSearchFetcher',
+      'file' => 'FeedsYouTubeVideoSearchFetcher.inc',
+      'path' => "$plugin_dir/fetchers",
+    ),
+  );
+  $info['FeedsYouTubeUserFavoritesFetcher'] = array(
+    'name' => 'YouTube user favorites',
+    'description' => 'Download a users favorite videos on YouTube.',
+    'handler' => array(
+      'parent' => 'FeedsHTTPFetcher', // This is the key name, not the class name.
+      'class' => 'FeedsYouTubeUserFavoritesFetcher',
+      'file' => 'FeedsYouTubeUserFavoritesFetcher.inc',
+      'path' => "$plugin_dir/fetchers",
+    ),
+  );
+  
+  // Parsers
+  
+  if (feeds_library_exists('simplepie.inc', 'simplepie')) {
+    $info['FeedsYouTubeAtomParser'] = array(
+      'name' => 'YouTube Atom parser',
+      'description' => 'Parse YouTube feeds in Atom format.',
+      'help' => 'Use <a href="http://simplepie.org">SimplePie</a> to parse YouTube feeds.',
+      'handler' => array(
+        'parent' => 'FeedsSimplePieParser',
+        'class' => 'FeedsYouTubeVideoAtomParser',
+        'file' => 'FeedsYouTubeVideoAtomParser.inc',
+        'path' => "$plugin_dir/parsers",
+      ),
+    );    
+  }
+  return $info;
+}
+
+/**
+ * Includes a library file.
+ * 
+ * @param $file
+ *   The filename to load from.
+ * @param $library
+ *   The name of the library.
+ */
+function _feeds_youtube_include_library($file, $library) {
+  static $included = array();
+  if (!isset($included[$file])) {
+    // Only support libraries.
+    if (module_exists('libraries') && file_exists(libraries_get_path($library) ."/$file")) {
+      require libraries_get_path($library) ."/$file";      
+      $included[$file] = TRUE;
+    }
+  }
+  return ($included[$file] ? TRUE : FALSE);
+}
